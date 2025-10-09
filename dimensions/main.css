@@ -1,0 +1,143 @@
+body {
+  text-align: center;
+  padding: 10px;
+  background-image: url("images/background_v3.png");
+  background-size: 128px;
+  background-color: black;
+  image-rendering: pixelated;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
+img {
+  object-fit: contain;
+}
+
+#main {
+  display: grid;
+  grid-template-areas:
+    "header header header header"
+    "main main main main"
+    "wall floor ceiling footer";
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 10px;
+  column-gap: 10px;
+  margin: auto;
+  background-image: url("images/background.png");
+  width: 730px;
+  background-color: rgb(226, 226, 226);
+  padding: 20px;
+}
+
+#heading {
+  margin: 20px 0 20px 0;
+  font-size: 36px;
+  font-weight: bolder;
+  grid-area: header;
+  color: rgb(36, 36, 36);
+}
+
+.button:hover {
+  background-color: #e0e0e0;
+  cursor:pointer;
+}
+
+.button:active {
+  background-color: #b0b0b0;
+}
+
+/* COLLECTION STYLING */
+#collection {
+  display: flex;
+  flex-wrap: wrap;
+  overflow-y: scroll;
+  border: rgb(128, 128, 128) 1px solid;
+  height: 500px;
+  background-color: white;
+  grid-area: main;
+  padding: 10px;
+  width: calc(100% - 20px);
+}
+
+.texture {
+  outline: rgb(128, 128, 128) 1px solid;
+  width: 128px;
+  height: 128px;
+  margin: 1px 0 0 1px;
+  padding: 5px;
+  position: relative;
+}
+
+.texture > img {
+  width: 100%;
+  height: 100%;
+}
+
+.texture > span {
+  display: none;
+  position: absolute;
+  text-align: center;
+  width: calc(100% - 10px);
+  color: white;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  font-weight: 100;
+  text-shadow:
+     -1px -1px 0 #000000,
+     1px -1px 0 #000000,
+     -1px 1px 0 #000000,
+     1px 1px 0 #000000;
+  bottom: 0px;
+}
+
+.texture:hover > span{
+  display: block;
+}
+
+.selected {
+  background-color: rgb(204, 232, 255);
+  outline: rgb(153, 209, 255) 1px solid;
+}
+
+.selected:hover {
+  background-color: rgb(204, 232, 255);
+}
+
+.selected:active {
+  background-color: rgb(166, 215, 255);
+}
+
+/* CHOICE STYLING */
+.choice, #output {
+  border: rgb(128, 128, 128) 1px solid;
+  margin: auto;
+  aspect-ratio: 1 / 1;
+  width: 100%;
+  background-color: white;
+}
+
+.choice {
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.choice > img {
+  width: 128px;
+  height: 128px;
+  border: rgb(128, 128, 128) 1px solid;
+  margin-bottom: 5px;
+}
+
+#wall {
+  grid-area: wall;
+}
+
+#floor {
+  grid-area: floor;
+}
+
+#ceiling {
+  grid-area: ceiling;
+}
+
+#output {
+  grid-area: footer;
+}
