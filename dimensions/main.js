@@ -1,8 +1,8 @@
 const COLLECTION = document.getElementById("collection")
 const SECTIONS = {
   "wall": ["8112A66C", "8112A66E"],
-  "floor": ["81129EA4", "81129EA6"],
-  "ceiling": ["BAADF00D", "BAADF00D"]
+  "floor": ["81129EA4", "81129EA6"]
+  //"ceiling": ["BAADF00D", "BAADF00D"]
 }
 const TEXTURE_DATA = {
   "black.png": "11008800",
@@ -78,4 +78,5 @@ for (const name in SECTIONS) {
   element.onclick = function() {
     onOptionClick(name, element)
   }
+
 }
