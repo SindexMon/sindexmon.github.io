@@ -94,7 +94,7 @@ img {
 
 .selected {
   background-color: rgb(204, 232, 255);
-  outline: rgb(153, 209, 255) 1px solid;
+  outline: rgb(83, 178, 255) 2px solid;
 }
 
 .selected:hover {
@@ -124,6 +124,10 @@ img {
   height: 128px;
   border: rgb(128, 128, 128) 1px solid;
   margin-bottom: 5px;
+}
+
+.unloaded {
+  border: rgb(128, 128, 128) 1px dashed !important;
 }
 
 #wall {
