@@ -11,7 +11,8 @@ const DOMAINS = [
 const THUMB_TYPES = [
   "vi"
 ]
-const CDX_TEMPLATE = "https://web.archive.org/web/timemap/?url={url}*&fl=timestamp,original,statuscode,digest&output=json";
+const CDX_TEMPLATE = "https://web.archive.org/web/timemap/?url={url}*&fl=timestamp,original,statuscode,digest&pageSize=1&page=0&output=json";
+const AVAIL_TEMPLATE = "https://archive.org/wayback/available?url={url}*"
 
 function createThumbnail(group, url) {
   const section = document.getElementById(group)
@@ -24,13 +25,20 @@ function createThumbnail(group, url) {
 }
 
 function parseCDX(content) {
-  const digests = []
-  const cdx = JSON.parse(content)
+  /*const digests = []*/
+  const cdx = JSON.parse(content);
 
-  for (const data of cdx) {
+  /*for (const data of cdx) {
     if (data[0] !== "timestamp" && data[2] == "200" && !digests.includes(data[3])) {
       createThumbnail("wayback", `https://web.archive.org/web/${data[0]}/${data[1]}`)
       digests.push(data[3])
+    }
+  }*/
+  if ("closest" in cdx["archived_snapshots"]) {
+    const thumb_data = cdx["archived_snapshots"]["closest"];
+
+    if (thumb_data["status"] == "200") {
+      createThumbnail("wayback", thumb_data["url"].replace(/^https*:\/\/web.archive.org\/web\/(\d{14})/, "https://web.archive.org/web/$1id_"))
     }
   }
 }
@@ -72,9 +80,9 @@ function triggerSearch() {
     for (const domain of DOMAINS) {
       for (const format of THUMB_TYPES) {
         setTimeout(() => {
-          requestURL(CDX_TEMPLATE.replace("{url}", `${domain}/${format}/${video}/`), "GET", "wayback")
-        }, count * 0.1)
-        
+          requestURL(AVAIL_TEMPLATE.replace("{url}", `${domain}/${format}/${video}/`), "GET", "wayback")
+        }, count * 2)
+
         count += 1
       }
     }
