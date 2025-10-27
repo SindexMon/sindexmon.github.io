@@ -261,17 +261,7 @@ function triggerSearch(searchValue, prefix) {
 // Strangely, changing URLs fixes this. Since a URL's protocol is stripped on the backend, changing it fixes the problem.
 // Any protocol is allowed, as long as it begins with a letter.
 async function confirmSearch(searchValue) {
-  const verifyTemplate = "https://archive.org/wayback/available?url=a{}://i1.ytimg.com/vi/TPAWpHG3RWY/*"
-  
-  for (let i = 0; i < 10; i++) {
-    const cdxContent = await requestURL(verifyTemplate.replace("{}", i), "none", "GET");
-    if (cdxContent.includes("closest")) {
-      triggerSearch(searchValue, `a${i}://`);
-      return;
-    }
-  }
-
-  OUTPUT.innerHTML = "API is blocked; try again later!";
+  triggerSearch(searchValue, `a${Math.random().toString()}://`);
 }
 
 SEARCH_BAR.addEventListener("keydown", function(event) {
