@@ -220,9 +220,10 @@ function triggerSearch(searchValue, prefix) {
 
     requestURL(`https://i.ytimg.com/vi/${video}/frame0.jpg`, "youtube", "HEAD");
 
-
-    for (let i = 1; i <= 3; i++) {
-      requestURL(`https://i.ytimg.com/vi/${video}/sd${i}.jpg`, "youtube", "HEAD");
+    for (const q of QUALITIES) {
+      for (let i = 1; i <= 3; i++) {
+        requestURL(`https://i.ytimg.com/vi/${video}/${q}${i}.jpg`, "youtube", "HEAD");
+      }
     }
     
     for (const domain of DOMAINS) {
