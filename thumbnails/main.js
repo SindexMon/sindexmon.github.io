@@ -258,14 +258,10 @@ function triggerSearch(searchValue, prefix) {
 
 // Ensure a verified archive is present - otherwise, user is rate-limited.
 async function confirmSearch(searchValue) {
-  const urlChecks = {
-    "": "https://archive.org/wayback/available?url=i1.ytimg.com/vi/TPAWpHG3RWY/*",
-    "http://": "https://archive.org/wayback/available?url=http://i1.ytimg.com/vi/TPAWpHG3RWY/*",
-    "https://": "https://archive.org/wayback/available?url=https://i1.ytimg.com/vi/TPAWpHG3RWY/*"
-  };
+  const verifyTemplate = "https://archive.org/wayback/available?url={}://i1.ytimg.com/vi/TPAWpHG3RWY/*"
   
-  for (key in urlChecks) {
-    const cdxContent = await requestURL(urlChecks[key], "none", "GET");
+  for (let i = 0; i < 20; i++) {
+    const cdxContent = await requestURL(verifyTemplate.replace("{}", i), "none", "GET");
     if (cdxContent.includes("closest")) {
       triggerSearch(searchValue, key);
       return;
