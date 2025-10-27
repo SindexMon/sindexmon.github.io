@@ -76,7 +76,7 @@ const THUMB_TYPES = [
   "vi",
   "vi_webp"
 ];
-const AVAIL_TEMPLATE = "https://archive.org/wayback/available?url={url}*";
+const AVAIL_TEMPLATE = "https://archive.org/wayback/available?url=";
 
 let openConns = 0;
 let lastSearch = null;
@@ -206,7 +206,7 @@ function checkIfFinished() {
   OUTPUT.innerHTML = "Finished!";
 }
 
-function triggerSearch(searchValue) {
+function triggerSearch(searchValue, prefix) {
   totalDelay = Math.max(0, totalDelay - (Date.now() - lastSearch))
   lastSearch = Date.now();
 
@@ -228,12 +228,12 @@ function triggerSearch(searchValue) {
     for (const domain of DOMAINS) {
       prefireMessage(`Checking ${domain} on the Wayback Machine...`);
       for (const format of THUMB_TYPES) {
-        delayedFetch(AVAIL_TEMPLATE.replace("{url}", `${domain}/${format}/${video}/`), "wayback", 200, "GET");
+        delayedFetch(AVAIL_TEMPLATE + prefix + `${domain}/${format}/${video}/*`, "wayback", 200, "GET");
       }
     }
 
     prefireMessage("Checking i9.ytimg.com on the Wayback Machine...");
-    delayedFetch(AVAIL_TEMPLATE.replace("{url}", `i9.ytimg.com/vi_blogger/${video}/`), "wayback", 200, "GET");
+    delayedFetch(AVAIL_TEMPLATE + prefix + `i9.ytimg.com/vi_blogger/${video}/*`, "wayback", 200, "GET");
 
     for (const domain of OLD_DOMAINS) {
       prefireMessage(`Checking ${domain} on the Wayback Machine...`);
@@ -258,13 +258,21 @@ function triggerSearch(searchValue) {
 
 // Ensure a verified archive is present - otherwise, user is rate-limited.
 async function confirmSearch(searchValue) {
-  const bssContent = await requestURL("https://archive.org/wayback/available?url=i1.ytimg.com/vi/TPAWpHG3RWY/*", "none", "GET");
-
-  if (bssContent.includes("closest")) {
-    triggerSearch(searchValue);
-  } else {
-    OUTPUT.innerHTML = "API is blocked; try again later!";
+  const urlChecks = {
+    "": "https://archive.org/wayback/available?url=i1.ytimg.com/vi/TPAWpHG3RWY/*",
+    "http://": "https://archive.org/wayback/available?url=http://i1.ytimg.com/vi/TPAWpHG3RWY/*",
+    "https://": "https://archive.org/wayback/available?url=https://i1.ytimg.com/vi/TPAWpHG3RWY/*"
+  };
+  
+  for (key in urlChecks) {
+    const cdxContent = await requestURL(urlChecks[key], "none", "GET");
+    if (cdxContent.includes("closest")) {
+      triggerSearch(searchValue, key);
+      return;
+    }
   }
+
+  OUTPUT.innerHTML = "API is blocked; try again later!";
 }
 
 SEARCH_BAR.addEventListener("keydown", function(event) {
