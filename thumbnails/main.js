@@ -2,6 +2,7 @@ const SEARCH_BAR = document.getElementById("search");
 const OUTPUT = document.getElementById("output");
 
 const MAX_CONNS = 5;
+const QUALITIES = ["sd", "mq", "hq", "maxres"];
 const DOMAINS = [
   "img.youtube.com",
   "i.ytimg.com",
@@ -67,139 +68,207 @@ const OLD_DOMAINS = [
   "sjl-static15.sjl.youtube.com",
   "sjl-static16.sjl.youtube.com"
 ];
+const STATIC_DOMAINS = [
+  "static.youtube.com",
+  "static08.youtube.com"
+];
 const THUMB_TYPES = [
   "vi",
   "vi_webp"
 ];
-const CDX_TEMPLATE = "https://web.archive.org/web/timemap/?url={url}*&fl=timestamp,original,statuscode,digest&pageSize=1&page=0&output=json";
 const AVAIL_TEMPLATE = "https://archive.org/wayback/available?url={url}*";
 
 let openConns = 0;
+let lastSearch = null;
 
-function createThumbnail(group, url) {
-  const section = document.getElementById(group)
-  const img = document.createElement("img")
-  img["src"] = url
-  
-  document.getElementById("thumbbox").className = null
-  section.className = "section"
-  section.append(img)
+function verifyConn(func, args) {
+  if (openConns >= MAX_CONNS) {
+    //console.log(`${openConns} open connections! Waiting...`);
+    setTimeout(func, 100, ...args);
+  } else {
+    openConns += 1;
+    return true;
+  }
 }
 
-function directImageCheck(group, url) {
-  if (openConns >= MAX_CONNS) {
-    console.log(`${openConns} open connections! Waiting...`)
-    setTimeout(directImageCheck, 100, group, url);
-    return;
+function createThumbnail(url, group, cdxURL) {
+  if (cdxURL) {
+    // Means there's a new connection
+    if (!verifyConn(createThumbnail, arguments)) {
+      return;
+    }
   }
 
-  openConns += 1;
+  const section = document.getElementById(group);
+  const container = document.createElement("div");
+  const img = document.createElement("img");
+  img.className = "thumbnail";
 
-  const img = new Image();
   img.onload = function() {
     openConns -= 1;
-    createThumbnail(group, img.src);
+    document.getElementById("thumbbox").className = "";
+    section.className = "section"
+    section.append(container)
   };
+
   img.onerror = function() {
     openConns -= 1;
+  };
+
+  img["src"] = url;
+  container.append(img);
+
+  if (cdxURL) {
+    const label = document.createElement("a");
+    label.href = "https://web.archive.org/web/*/" + cdxURL.substring(42);
+    label.target = "_blank";
+    label.title = "See more from this domain";
+    label.innerHTML = "?";
+    label.className = "cdxNotice";
+    container.append(label);
   }
-  img.src = url;
+
+  document.getElementById("preloader").append(container)
 }
 
-function parseCDX(content) {
-  /*const digests = []*/
+function parseCDX(url, content) {
   const cdx = JSON.parse(content);
 
-  /*for (const data of cdx) {
-    if (data[0] !== "timestamp" && data[2] == "200" && !digests.includes(data[3])) {
-      createThumbnail("wayback", `https://web.archive.org/web/${data[0]}/${data[1]}`)
-      digests.push(data[3])
-    }
-  }*/
   if ("closest" in cdx["archived_snapshots"]) {
     const thumb_data = cdx["archived_snapshots"]["closest"];
 
     if (thumb_data["status"] == "200") {
-      createThumbnail("wayback", thumb_data["url"].replace(/^https*:\/\/web.archive.org\/web\/(\d{14})/, "https://web.archive.org/web/$1id_"))
+      createThumbnail(thumb_data["url"].replace(/^https*:\/\/web.archive.org\/web\/(\d{14})/, "https://web.archive.org/web/$1id_"), "wayback", url)
     }
   }
 }
 
-async function requestURL(url, method, group) {
-  if (openConns >= MAX_CONNS) {
-    console.log(`${openConns} open connections! Waiting...`)
-    setTimeout(requestURL, 100, url, method, group);
+async function requestURL(url, group, method) {
+  if (!verifyConn(requestURL, arguments)) {
     return;
   }
 
-  openConns += 1;
+  if (method) {
+    try {
+      const response = await fetch(url, {method: method});
+      openConns -= 1;
 
-  try {
-    const response = await fetch(url, {method: method});
+      if (!response.ok) {
+        throw new Error(`${response.status}`);
+      }
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      switch (group) {
+        case "wayback":
+          parseCDX(url, await response.text());
+          break
+        case "youtube":
+          createThumbnail(url, group);
+        default:
+          return await response.text()
+      }
+    } catch (error) {
+      if (error != "Error: 404") {
+        console.error("Request error:", error)
+      } else if (error == "429") {
+        console.error("Rate limited!")
+        OUTPUT.innerHTML = "Too many requests! Close any Wayback Machine tabs and try again later.";
+      }
+
+      openConns -= 1;
     }
-    
-    switch (group) {
-      case "youtube":
-        createThumbnail(group, url);
-        break;
-      case "wayback":
-        parseCDX(await response.text())
-        break;
-    }
-  } catch (error) {
-    console.error('Error fetching data:', error);
+  } else {
+    createThumbnail(url, group);
   }
-
-  openConns -= 1;
 }
 
-function triggerSearch() {
-  let video = "/" + SEARCH_BAR["value"] + "/";
+let totalDelay = 0;
+
+function delayedFetch(url, group, delay, method) {
+  setTimeout(() => {
+    requestURL(url, group, method);
+  }, totalDelay);
+
+  totalDelay += delay;
+}
+
+function prefireMessage(msg) {
+  setTimeout(() => {
+    OUTPUT.innerHTML = msg;
+  }, totalDelay);
+}
+
+function checkIfFinished() {
+  if (openConns > 0) {
+    setTimeout(checkIfFinished, 100);
+    return;
+  }
+
+  OUTPUT.innerHTML = "Finished!";
+}
+
+function triggerSearch(searchValue) {
+  totalDelay = Math.max(0, totalDelay - (Date.now() - lastSearch))
+  lastSearch = Date.now();
+
+  let video = "/" + searchValue + "/";
   const matchData = video.match(/\W([A-Za-z0-9_-]{10}[AEIMQUYcgkosw048])\W/);
+
   if (matchData) {
     video = matchData[1];
 
     OUTPUT.innerHTML = `Checking YouTube...`;
 
-    requestURL(`https://i.ytimg.com/vi/${video}/frame0.jpg`, "HEAD", "youtube")
+    requestURL(`https://i.ytimg.com/vi/${video}/frame0.jpg`, "youtube", "HEAD");
+
 
     for (let i = 1; i <= 3; i++) {
-      requestURL(`https://i.ytimg.com/vi/${video}/sd${i}.jpg`, "HEAD", "youtube")
+      requestURL(`https://i.ytimg.com/vi/${video}/sd${i}.jpg`, "youtube", "HEAD");
     }
-
-    let count = 0
+    
     for (const domain of DOMAINS) {
+      prefireMessage(`Checking ${domain} on the Wayback Machine...`);
       for (const format of THUMB_TYPES) {
-        count += 500
-        setTimeout(() => {
-          requestURL(AVAIL_TEMPLATE.replace("{url}", `${domain}/${format}/${video}/`), "GET", "wayback")
-          OUTPUT.innerHTML = `Checking ${domain} on the Wayback Machine...`;
-        }, count)
+        delayedFetch(AVAIL_TEMPLATE.replace("{url}", `${domain}/${format}/${video}/`), "wayback", 200, "GET");
       }
     }
 
-    let count2 = 0
+    prefireMessage("Checking i9.ytimg.com on the Wayback Machine...");
+    delayedFetch(AVAIL_TEMPLATE.replace("{url}", `i9.ytimg.com/vi_blogger/${video}/`), "wayback", 200, "GET");
+
     for (const domain of OLD_DOMAINS) {
+      prefireMessage(`Checking ${domain} on the Wayback Machine...`);
       for (let i = 0; i <= 3; i++) {
-        count += 100
-        setTimeout(() => {
-          directImageCheck("wayback", `https://web.archive.org/web/0id_/http://${domain}/vi/${video}/${i}.jpg`)
-          OUTPUT.innerHTML = `Checking ${domain} on the Wayback Machine...`;
-        }, count + count2)
+        delayedFetch(`https://web.archive.org/web/0id_/http://${domain}/vi/${video}/${i}.jpg`, "wayback", 100);
       }
     }
 
-    /*OUTPUT.innerHTML = "Search done!";*/
+    for (const domain of STATIC_DOMAINS) {
+      prefireMessage(`Checking ${domain} on the Wayback Machine...`);
+      delayedFetch(`https://web.archive.org/web/0id_/http://${domain}/get_still.php?video_id=${video}`, "wayback", 100);
+      for (let i = 1; i <= 3; i++) {
+        delayedFetch(`https://web.archive.org/web/0id_/http://${domain}/get_still.php?video_id=${video}&still_id=${i}`, "wayback", 100);
+      }
+    }
+
+    setTimeout(checkIfFinished, totalDelay);
   } else {
     OUTPUT.innerHTML = "Invalid video ID...";
   }
 }
 
+// Ensure a verified archive is present - otherwise, user is rate-limited.
+async function confirmSearch(searchValue) {
+  const bssContent = await requestURL("https://archive.org/wayback/available?url=i1.ytimg.com/vi/TPAWpHG3RWY/*", "none", "GET");
+
+  if (bssContent.includes("closest")) {
+    triggerSearch(searchValue);
+  } else {
+    OUTPUT.innerHTML = "Too many requests; try again later!";
+  }
+}
+
 SEARCH_BAR.addEventListener("keydown", function(event) {
   if (event.key == "Enter") {
-    triggerSearch();
+    confirmSearch(SEARCH_BAR["value"]);
   }
 });
