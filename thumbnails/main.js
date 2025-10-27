@@ -120,7 +120,7 @@ function createThumbnail(url, group, cdxURL) {
 
   if (cdxURL) {
     const label = document.createElement("a");
-    label.href = "https://web.archive.org/web/*/" + cdxURL.substring(42);
+    label.href = "https://web.archive.org/web/*/" + cdxURL.substring(47);
     label.target = "_blank";
     label.title = "See more from this domain";
     label.innerHTML = "?";
@@ -256,14 +256,16 @@ function triggerSearch(searchValue, prefix) {
   }
 }
 
-// Ensure a verified archive is present - otherwise, user is rate-limited.
+// Ensure a verified archive is present - otherwise, user is rate-limited (no results).
+// Strangely, changing URLs fixes this. Since a URL's protocol is stripped on the backend, changing it fixes the problem.
+// Any protocol is allowed, as long as it begins with a letter.
 async function confirmSearch(searchValue) {
-  const verifyTemplate = "https://archive.org/wayback/available?url={}://i1.ytimg.com/vi/TPAWpHG3RWY/*"
+  const verifyTemplate = "https://archive.org/wayback/available?url=a{}://i1.ytimg.com/vi/TPAWpHG3RWY/*"
   
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < 10; i++) {
     const cdxContent = await requestURL(verifyTemplate.replace("{}", i), "none", "GET");
     if (cdxContent.includes("closest")) {
-      triggerSearch(searchValue, key);
+      triggerSearch(searchValue, `a${i}://`);
       return;
     }
   }
