@@ -263,7 +263,7 @@ async function confirmSearch(searchValue) {
   if (bssContent.includes("closest")) {
     triggerSearch(searchValue);
   } else {
-    OUTPUT.innerHTML = "Too many requests; try again later!";
+    OUTPUT.innerHTML = "API is blocked; try again later!";
   }
 }
 
