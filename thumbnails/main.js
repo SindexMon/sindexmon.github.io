@@ -266,7 +266,7 @@ async function confirmSearch(searchValue) {
 
   if (verifyAPI) {
     if (verifyAPI.includes("closest")) {
-    triggerSearch(searchValue, `a${Math.random().toString()}://`);
+      triggerSearch(searchValue, `a${Math.random().toString()}://`);
     } else {
       OUTPUT.innerHTML = "API blocked; try again later!";
     }
