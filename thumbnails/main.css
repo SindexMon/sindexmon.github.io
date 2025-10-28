@@ -1,15 +1,38 @@
+.light {
+  --background: #ffffff;
+  --section: #ffffff;
+  --border: #c0c0c0;
+  --header: #444444;
+  --text: #858585;
+  --search: #ffffff;
+  --input: #000000;
+  --subheading: bold;
+}
+
+.dark {
+  --background: #0f0f0f;
+  --section: #070707;
+  --border: #3f3f3f;
+  --header: #ffffff;
+  --search: #121212;
+  --text: #aaaaaa;
+  --input: #ffffff;
+  --subheading: normal;
+}
+
 body {
-  font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+  font-family: "Roboto", "Arial", sans-serif;
   /*background-color: #444444;
   background-image: url("images/background.png");*/
   display: flex;
   justify-content: center;
   align-items: safe center;
   /*flex-direction: column;*/
+  background-color: var(--background);
 }
 
 h1 {
-  color:#444444;
+  color: var(--header);
   font-weight: bold;
   font-size: 28px;
   margin: 0;
@@ -29,9 +52,8 @@ h1 {
   height: fit-content;
   justify-content: center;
   flex-direction: column;
-  background-color: #ffffff;
   padding: 50px;
-  border: 2px solid #c0c0c0;
+  border: 2px solid var(--border);
   border-radius: 20px;
   margin: 20px 0 20px 0;
   /*box-shadow: 0px 0px 10px 0px black;*/
@@ -40,7 +62,7 @@ h1 {
 #search {
   width: 450px;
   height: 30px;
-  border: 2px solid #c0c0c0;
+  border: 2px solid var(--border);
   font-size: 16px;
   border-radius: 5px;
   padding-left: 30px;
@@ -49,16 +71,21 @@ h1 {
   background-position: 5px 6px;
   background-repeat: no-repeat;
   margin: 5px 0 5px 0;
+  background-color: var(--search);
 }
 
 #output {
-  color: #858585;
+  color: var(--text);
   font-style: italic;
   margin-top: 5px;
 }
 
+input {
+  color: var(--input);
+}
+
 input::placeholder {
-  color: #858585;
+  color: var(--border);
 }
 
 #preloader {
@@ -93,11 +120,12 @@ input::placeholder {
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
-  border: 2px solid #c0c0c0;
+  border: 2px solid var(--border);
   border-radius: 20px;
   padding: 50px 20px 20px 20px;
   justify-content: center;
   position: relative;
+  background-color: var(--section);
 }
 
 .section, .section img {
@@ -123,14 +151,15 @@ input::placeholder {
      1px -1px 0 #000000,
      -1px 1px 0 #000000,
      1px 1px 0 #000000;
-  -webkit-text-stroke: 1px solid black;
   color: white;
 }
 
 .category {
   width: fit-content;
-  color: #444444;
-  font-weight: bold;
+  color: var(--header);
+  font-weight: var(--subheading);
+  display: inline-flex;
+  align-items: center;
   position: absolute;
   top: 20px;
   height: 25px;
@@ -159,7 +188,7 @@ input::placeholder {
 /* MISC */
 
 #downloader {
-  border: 2px solid #c0c0c0;
+  border: 2px solid var(--border);
   border-radius: 10px;
   padding: 10px;
 }
