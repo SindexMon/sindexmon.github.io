@@ -120,7 +120,7 @@ function createThumbnail(url, group, cdxURL) {
 
   if (cdxURL) {
     const label = document.createElement("a");
-    label.href = "https://web.archive.org/web/*/" + cdxURL.substring(47);
+    label.href = "https://web.archive.org/web/*/" + cdxURL.split("://")[2];
     label.target = "_blank";
     label.title = "See more from this domain";
     label.innerHTML = "?";
