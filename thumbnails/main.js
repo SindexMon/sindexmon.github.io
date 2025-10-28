@@ -167,11 +167,11 @@ async function requestURL(url, group, method) {
           return await response.text()
       }
     } catch (error) {
-      if (error != "Error: 404") {
-        console.error("Request error:", error)
-      } else if (error == "429") {
+      if (error.toString().includes("Failed to fetch")) {
         console.error("Rate limited!")
         OUTPUT.innerHTML = "Too many requests! Close any Wayback Machine tabs and try again later.";
+      } else if (error != "Error: 404") {
+        console.error("Request error:", error)
       }
 
       openConns -= 1;
@@ -261,7 +261,16 @@ function triggerSearch(searchValue, prefix) {
 // Strangely, changing URLs fixes this. Since a URL's protocol is stripped on the backend, changing it fixes the problem.
 // Any protocol is allowed, as long as it begins with a letter.
 async function confirmSearch(searchValue) {
-  triggerSearch(searchValue, `a${Math.random().toString()}://`);
+  const protocol = `a${Math.random().toString()}://`;
+  const verifyAPI = await requestURL(`https://archive.org/wayback/available?url=${protocol}i1.ytimg.com/vi/TPAWpHG3RWY/*`, "none", "GET");
+
+  if (verifyAPI) {
+    if (verifyAPI.includes("closest")) {
+    triggerSearch(searchValue, `a${Math.random().toString()}://`);
+    } else {
+      OUTPUT.innerHTML = "API blocked; try again later!";
+    }
+  }
 }
 
 SEARCH_BAR.addEventListener("keydown", function(event) {
