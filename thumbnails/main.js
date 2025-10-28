@@ -229,12 +229,12 @@ function triggerSearch(searchValue, prefix) {
     for (const domain of DOMAINS) {
       prefireMessage(`Checking ${domain} on the Wayback Machine...`);
       for (const format of THUMB_TYPES) {
-        delayedFetch(AVAIL_TEMPLATE + prefix + `${domain}/${format}/${video}/*`, "wayback", 200, "GET");
+        delayedFetch(AVAIL_TEMPLATE + prefix + `${domain}/${format}/${video}/*`, "wayback", 750, "GET");
       }
     }
 
     prefireMessage("Checking i9.ytimg.com on the Wayback Machine...");
-    delayedFetch(AVAIL_TEMPLATE + prefix + `i9.ytimg.com/vi_blogger/${video}/*`, "wayback", 200, "GET");
+    delayedFetch(AVAIL_TEMPLATE + prefix + `i9.ytimg.com/vi_blogger/${video}/*`, "wayback", 750, "GET");
 
     for (const domain of OLD_DOMAINS) {
       prefireMessage(`Checking ${domain} on the Wayback Machine...`);
@@ -266,7 +266,7 @@ async function confirmSearch(searchValue) {
 
   if (verifyAPI) {
     if (verifyAPI.includes("closest")) {
-      triggerSearch(searchValue, `a${Math.random().toString()}://`);
+      triggerSearch(searchValue, `a${Math.floor(Math.random() * 100).toString().padStart(2, "0")}://`);
     } else {
       OUTPUT.innerHTML = "API blocked; try again later!";
     }
