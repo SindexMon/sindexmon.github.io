@@ -80,6 +80,7 @@ const AVAIL_TEMPLATE = "https://archive.org/wayback/available?url=";
 
 let openConns = 0;
 let lastSearch = null;
+let apiBlocked = false;
 
 function verifyConn(func, args) {
   if (openConns >= MAX_CONNS) {
@@ -113,6 +114,8 @@ function createThumbnail(url, group, cdxURL) {
 
   img.onerror = function() {
     openConns -= 1;
+    img.remove();
+    console.log("bbitc");
   };
 
   img["src"] = url;
@@ -203,7 +206,31 @@ function checkIfFinished() {
     return;
   }
 
-  OUTPUT.innerHTML = "Finished!";
+  if (apiBlocked) {
+    OUTPUT.innerHTML = "API blocked for some thumbnails; try again later!";
+  } else {
+    OUTPUT.innerHTML = "Finished!";
+  }
+}
+
+function grabFrames(domain_list, video, dir, ext, addDefault) {
+  for (const domain of domain_list) {
+    prefireMessage(`Checking ${domain} on the Wayback Machine...`);
+
+    if (addDefault) {
+      for (const q of ["", ...QUALITIES]) {
+        delayedFetch(`https://web.archive.org/web/0id_/http://${domain}/${dir}/${video}/${q}default.${ext}`, "wayback", 100);
+
+        for (let i = 0; i <= 3; i++) {
+          delayedFetch(`https://web.archive.org/web/0id_/http://${domain}/${dir}/${video}/${q}${i}.${ext}`, "wayback", 100);
+        }
+      }
+    } else {
+      for (let i = 0; i <= 3; i++) {
+        delayedFetch(`https://web.archive.org/web/0id_/http://${domain}/${dir}/${video}/${i}.${ext}`, "wayback", 100);
+      }
+    }
+  }
 }
 
 function triggerSearch(searchValue, prefix) {
@@ -216,6 +243,7 @@ function triggerSearch(searchValue, prefix) {
   if (matchData) {
     video = matchData[1];
 
+    // Thumbnails up on YouTube
     OUTPUT.innerHTML = `Checking YouTube...`;
 
     requestURL(`https://i.ytimg.com/vi/${video}/frame0.jpg`, "youtube", "HEAD");
@@ -226,22 +254,24 @@ function triggerSearch(searchValue, prefix) {
       }
     }
     
-    for (const domain of DOMAINS) {
-      prefireMessage(`Checking ${domain} on the Wayback Machine...`);
-      for (const format of THUMB_TYPES) {
-        delayedFetch(AVAIL_TEMPLATE + prefix + `${domain}/${format}/${video}/*`, "wayback", 750, "GET");
+    // Thumbnails that may include parameters (e.g. modern ytimg)
+    if (apiBlocked) {
+      grabFrames(DOMAINS, video, "vi", "jpg", true);
+      grabFrames(DOMAINS, video, "vi_webp", "webp", true);
+    } else {
+      for (const domain of DOMAINS) {
+        prefireMessage(`Checking ${domain} on the Wayback Machine...`);
+        for (const format of THUMB_TYPES) {
+          delayedFetch(AVAIL_TEMPLATE + prefix + `${domain}/${format}/${video}/*`, "wayback", 750, "GET");
+        }
       }
+    
+      prefireMessage("Checking i9.ytimg.com on the Wayback Machine...");
+      delayedFetch(AVAIL_TEMPLATE + prefix + `i9.ytimg.com/vi_blogger/${video}/*`, "wayback", 750, "GET");
     }
 
-    prefireMessage("Checking i9.ytimg.com on the Wayback Machine...");
-    delayedFetch(AVAIL_TEMPLATE + prefix + `i9.ytimg.com/vi_blogger/${video}/*`, "wayback", 750, "GET");
-
-    for (const domain of OLD_DOMAINS) {
-      prefireMessage(`Checking ${domain} on the Wayback Machine...`);
-      for (let i = 0; i <= 3; i++) {
-        delayedFetch(`https://web.archive.org/web/0id_/http://${domain}/vi/${video}/${i}.jpg`, "wayback", 100);
-      }
-    }
+    // Thumbnails with no parameters (e.g. static, sjl, sjc)
+    grabFrames(OLD_DOMAINS, video, "vi", "jpg", false);
 
     for (const domain of STATIC_DOMAINS) {
       prefireMessage(`Checking ${domain} on the Wayback Machine...`);
@@ -266,11 +296,13 @@ async function confirmSearch(searchValue) {
 
   if (verifyAPI) {
     if (verifyAPI.includes("closest")) {
-      triggerSearch(searchValue, protocol);
+      apiBlocked = false;
     } else {
-      OUTPUT.innerHTML = "API blocked; try again later!";
+      apiBlocked = true;
     }
   }
+
+  triggerSearch(searchValue, protocol);
 }
 
 SEARCH_BAR.addEventListener("keydown", function(event) {
