@@ -207,7 +207,7 @@ function checkIfFinished() {
   }
 
   if (apiBlocked) {
-    OUTPUT.innerHTML = "API blocked for some thumbnails; try again later!";
+    OUTPUT.innerHTML = "API blocked for some thumbnails post-2007; try again later!";
   } else {
     OUTPUT.innerHTML = "Finished!";
   }
