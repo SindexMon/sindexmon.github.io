@@ -92,7 +92,7 @@ async function loadResults(start) {
           for (let scr of screenshots) {
             let scrData = scr.split(".");
             const newScr = document.createElement("img");
-            newScr.src = `https://i.gjcdn.net/public-data/games/${Math.floor(game_id / 62500)}/${game_id % 250}/${game_id}/screenshots/${game_id}_${scrData[0]}_orig.${scrData[1]}`;
+            newScr.src = `https://i.gjcdn.net/public-data/games/${Math.floor(game_id / 62500)}/${game_id % 250}/${game_id}/screenshots/${game_id}_${scrData[0]}${Number(scrData[0]) < 16578 ? "" : "_orig"}.${scrData[1]}`;
             newScr.className = "additional";
             gallery.append(newScr);
           }

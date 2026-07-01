@@ -8,8 +8,13 @@ body {
 }
 
 img {
-  width: 250px;
+  max-width: 250px;
+  height: calc(338px/601px*250px);
   object-fit: contain;
+}
+
+.thumbnail {
+  width: 250px;
 }
 
 h1, h2, h3 {
