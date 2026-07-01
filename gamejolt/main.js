@@ -75,23 +75,39 @@ async function loadResults(start) {
 	    	return true;
 	    };
     }
-
+    
+    const screenshots = game[9] ? game[9].split(" ") : null;
     const photosBtn = newGame.querySelector(".photos");
     photosBtn.addEventListener("click", function(event) {
       if (!event.target.classList.contains("active")) {
+        event.target.classList.add("active");
+
         const newPhoto = document.createElement("img");
         newPhoto.src = `https://m.gjcdn.net/game-header/1000000000000000/${game_id}.png`;
         newPhoto.onerror = () => { newPhoto.remove(); };
         newPhoto.onload = () => { gallery.append(newPhoto); };
         newPhoto.className = "additional";
+        
+        if (screenshots) {
+          for (let scr of screenshots) {
+            let scrData = scr.split(".");
+            const newScr = document.createElement("img");
+            newScr.src = `https://i.gjcdn.net/public-data/games/${Math.floor(game_id / 62500)}/${game_id % 250}/${game_id}/screenshots/${game_id}_${scrData[0]}_orig.${scrData[1]}`;
+            newScr.className = "additional";
+            gallery.append(newScr);
+          }
+        }
       }
     });
 
     const newPhoto = document.createElement("img");
     newPhoto.src = `https://m.gjcdn.net/game-header/1000000000000000/${game_id}.png`;
-    newPhoto.onerror = () => { photosBtn.parentElement.remove(); };
-    document.querySelector("#photoDump").append(newPhoto);
+    
+    if (!game[9]) {
+      newPhoto.onerror = () => { photosBtn.parentElement.remove(); };
+    }
 
+    document.querySelector("#photoDump").append(newPhoto);
     container.append(newGame);
   }
 }
