@@ -15,7 +15,10 @@ let canSeeDeleted = false;
 
 async function grabJSON(path) {
   const response = await fetch(path);
-  return await response.json();
+  const decompressionStream = new DecompressionStream('gzip');
+  const decompressedStream = response.body.pipeThrough(decompressionStream);
+  
+  return await new Response(decompressedStream).json();
 }
 
 async function loadResults(start) {
