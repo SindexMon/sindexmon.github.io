@@ -68,6 +68,7 @@ h1, h2, h3 {
 .gallery {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 0.5rem;
 }
 
