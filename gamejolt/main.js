@@ -98,7 +98,7 @@ async function loadResults(start) {
 async function search(term) {
   searchResults = [];
   const yourTerm = searchBar["value"].toLowerCase().replaceAll(/[^a-z0-9 ]/g, "").split(" ");
-  const userID = !isNaN(searchUser["value"]) ? Number(searchUser["value"]) : null;
+  const userID = searchUser["value"] != "" ? Number(searchUser["value"]) : null;
 
   for (let i = 0; i < numGames; i++) {
     if (yourTerm.every(item => gameData[i][3].includes(item)) && (!userID || gameData[i][1] == userID)) {
@@ -134,6 +134,7 @@ async function init() {
 
   gameData = await grabJSON("./data.json");
   numGames = gameData.length;
+  document.getElementById("loading").remove();
   
   searchBar.addEventListener("keydown", sendSearch);
   searchUser.addEventListener("keydown", sendSearch);
