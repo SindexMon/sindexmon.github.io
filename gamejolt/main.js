@@ -25,6 +25,7 @@ async function loadResults(start) {
   resultsIndex = start;
   pageCount["value"] = start / resultsPerPage + 1;
   container.replaceChildren();
+  document.querySelector("#photoDump").replaceChildren();
 
   if (start >= searchResults.length) return;
 
@@ -135,6 +136,7 @@ async function init() {
   gameData = await grabJSON("./data.json");
   numGames = gameData.length;
   document.getElementById("loading").remove();
+  alert("Loading complete!")
   
   searchBar.addEventListener("keydown", sendSearch);
   searchUser.addEventListener("keydown", sendSearch);
