@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Universal Game Jolt Search</title>
+    <link rel="stylesheet" href="main.css"/>
+  </head>
+  <body>
+    <template id="game">
+      <div class="container">
+        <h3>Five Nights at Freddy's 3 (FANMADE)</h3>
+        <div class="gallery">
+          <img class="thumbnail" src="https://m.gjcdn.net/game-thumbnail/1000000000000000/42732.png"/>
+        </div>
+        <a class="gamePage" href="https://gamejolt.com/games/a/42732"><img style="width: 0px;" class="gameTick"/>Link to page</a>
+        <strong>No builds before June 24, 2015</strong>
+        <div class="buttons">
+          <div class="imageBtn"><div class="photos"><img src="images/photos.png"/></div></div>
+          <div class="imageBtn"><a class="soundtrack" href=""><img src="images/music.png"/></a></div>
+          <div class="imageBtn"><a class="author" href=""><img src="images/author.png"/></a></div>
+        </div>
+      </div>
+    </template>
+    <div id="title" class="container">
+      <h1>Universal Game Jolt Search</h1>
+      <div id="searchBars">
+        <input id="search" placeholder="Enter search term">
+        <input id="searchUser" placeholder="Enter user ID">
+      </div>
+    </div>
+    <div id="games"></div>
+    <div id="pagination" style="display: none;">
+      <div id="start"><img src="images/start.png"/></div>
+      <div id="prev"><img src="images/prev.png"/></div>
+      <div id="count"><input id="page" value="1"/></div>
+      <div id="next"><img src="images/next.png"/></div>
+      <div id="end"><img src="images/end.png"/></div>
+    </div>
+    <strong id="resultCount" style="display: none;">10000 results</strong>
+    <select id="numResults" style="display: none;">
+      <option value="10" selected>10 per page</option>
+      <option value="25">25 per page</option>
+      <option value="50">50 per page</option>
+      <option value="100">100 per page</option>
+      <option value="250">250 per page</option>
+    </select>
+    <span id="notice" style="display: none; color: #5f5e62; font-style: italic; margin-top: 1rem; text-align: center;">Unable to retrieve whether a game is deleted.<br/>If that information's useful to you, try turning off<br/>your ad blocker so Game Jolt's API isn't blocked.</span>
+    <div id="photoDump"></div>
+    <script src="main.js"></script>
+  </body>
+</html>
