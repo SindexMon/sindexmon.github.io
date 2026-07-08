@@ -22,12 +22,16 @@ async function grabJSON(path) {
 }
 
 async function loadResults(start) {
-  resultsIndex = start;
-  pageCount["value"] = start / resultsPerPage + 1;
-  container.replaceChildren();
-  document.querySelector("#photoDump").replaceChildren();
+  if (start < searchResults.length || searchResults.length == 0) {
+    resultsIndex = start;
+    pageCount["value"] = start / resultsPerPage + 1;
+    container.replaceChildren();
+    document.querySelector("#photoDump").replaceChildren();
 
-  if (start >= searchResults.length) return;
+    if (searchResults.length == 0) return;
+  } else {
+    return;
+  }
 
   const canGoBackward = start != 0;
   document.getElementById("start").className = canGoBackward ? "enabled" : "";
@@ -45,7 +49,7 @@ async function loadResults(start) {
     const game_id = game[0];
     const newGame = gameTemplate.content.cloneNode(true);
     newGame.querySelector("h3").textContent = game[2];
-    newGame.querySelector("strong").textContent = `${game[7] == 0 ? "No builds" : (game[7] == 1 ? "1 build" : game[7] + " builds")} before June 24, 2015`;
+    newGame.querySelector("strong").textContent = `${game[6] == 0 ? "No builds" : (game[6] == 1 ? "1 build" : game[6] + " builds")} before June 24, 2015`;
     newGame.querySelector(".author").href = `https://gamejolt.com/profile/a/${game[1]}`;
 
     const thumbnail = newGame.querySelector(".thumbnail");
@@ -54,7 +58,7 @@ async function loadResults(start) {
       thumbnail.remove();
     };
 
-    if (game[8] == 0) {
+    if (game[7] == 0) {
       newGame.querySelector(".soundtrack").parentElement.remove()
     } else {
       newGame.querySelector(".soundtrack").href = `https://i.gjcdn.net/public-data/games/${Math.floor(game_id / 62500)}/${game_id % 250}/${game_id}/soundtracks/default/soundtrack.zip`;
@@ -76,7 +80,7 @@ async function loadResults(start) {
 	    };
     }
     
-    const screenshots = game[9] ? game[9].split(" ") : null;
+    const screenshots = game[8] ? game[8].split(" ") : null;
     const photosBtn = newGame.querySelector(".photos");
     photosBtn.addEventListener("click", function(event) {
       if (!event.target.classList.contains("active")) {
@@ -103,7 +107,7 @@ async function loadResults(start) {
     const newPhoto = document.createElement("img");
     newPhoto.src = `https://m.gjcdn.net/game-header/1000000000000000/${game_id}.png`;
     
-    if (!game[9]) {
+    if (!game[7]) {
       newPhoto.onerror = () => { photosBtn.parentElement.remove(); };
     }
 
@@ -118,7 +122,7 @@ async function search(term) {
   const userID = searchUser["value"] != "" ? Number(searchUser["value"]) : null;
 
   for (let i = 0; i < numGames; i++) {
-    if (yourTerm.every(item => gameData[i][3].includes(item)) && (!userID || gameData[i][1] == userID)) {
+    if (yourTerm.every(item => (gameData[i][9]).includes(item)) && (!userID || gameData[i][1] == userID)) {
       searchResults.push(i)
     }
   }
@@ -151,6 +155,11 @@ async function init() {
 
   gameData = await grabJSON("./data.json");
   numGames = gameData.length;
+
+  for (let i = 0; i < numGames; i++) {
+    gameData[i].push(gameData[i][2].toLowerCase().replace(/[^a-z0-9]/g, ""));
+  }
+
   document.getElementById("loading").remove();
   alert("Loading complete!")
   
