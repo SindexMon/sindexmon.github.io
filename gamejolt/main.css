@@ -186,10 +186,29 @@ strong {
   opacity: 0.5;
 }
 
+.container strong {
+  margin: 0;
+}
+
 select {
   background-color: rgb(35, 32, 42);
   border: 1px solid rgb(68, 65, 75);
   color: white;
+  margin-bottom: 0.2rem;
+}
+
+#buildSelect {
+  display: flex;
+  gap: 0.1rem;
+  color: rgb(95, 94, 98);
+  font-size: 0.8rem;
+  font-weight: 600;
+  align-items: center;
+  justify-content: center;
+}
+
+label {
+  margin-top: 0.1rem;
 }
 
 #photoDump {

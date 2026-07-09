@@ -1,11 +1,17 @@
 const searchBar = document.getElementById("search");
 const searchUser = document.getElementById("searchUser");
 const pageCount = document.getElementById("page");
+
 const perPageSelector = document.getElementById("numResults");
+const sortSelector = document.getElementById("searchMode");
+const buildCheckbox = document.getElementById("onlyBuilds");
+
 const gameTemplate = document.getElementById("game");
 const container = document.getElementById("games");
 
 let resultsPerPage = 10;
+let searchMode = 0;
+let includeBuilds = false;
 
 let gameData;
 let numGames;
@@ -21,7 +27,7 @@ async function grabJSON(path) {
   return await new Response(decompressedStream).json();
 }
 
-async function loadResults(start) {
+async function loadResults(start, changeMode = false) {
   if (start < searchResults.length || searchResults.length == 0) {
     resultsIndex = start;
     pageCount["value"] = start / resultsPerPage + 1;
@@ -31,6 +37,25 @@ async function loadResults(start) {
     if (searchResults.length == 0) return;
   } else {
     return;
+  }
+
+  if (changeMode) {
+    switch (searchMode) {
+      case 0:
+        searchResults = searchResults.sort((a, b) => {
+          if (a < b) return -1;
+        });
+        break;
+      case 1:
+        searchResults = searchResults.sort((a, b) => {
+          if (a > b) return -1;
+        });
+        break;
+      case 2:
+        searchResults = searchResults.sort((a, b) => {
+          if (gameData[a][3] > gameData[b][3]) return -1;
+        });
+    }
   }
 
   const canGoBackward = start != 0;
@@ -49,7 +74,8 @@ async function loadResults(start) {
     const game_id = game[0];
     const newGame = gameTemplate.content.cloneNode(true);
     newGame.querySelector("h3").textContent = game[2];
-    newGame.querySelector("strong").textContent = `${game[6] == 0 ? "No builds" : (game[6] == 1 ? "1 build" : game[6] + " builds")} before June 24, 2015`;
+    newGame.querySelector(".views").textContent = `${game[3].toLocaleString()} view${game[3] == 1 ? "" : "s"}`;
+    newGame.querySelector(".builds").textContent = `${game[6] == 0 ? "No builds" : (game[6] == 1 ? "1 build" : game[6] + " builds")} before June 25, 2015`;
     newGame.querySelector(".author").href = `https://gamejolt.com/profile/a/${game[1]}`;
 
     const thumbnail = newGame.querySelector(".thumbnail");
@@ -118,22 +144,35 @@ async function loadResults(start) {
 
 async function search(term) {
   searchResults = [];
-  const yourTerm = searchBar["value"].toLowerCase().replaceAll(/[^a-z0-9 ]/g, "").split(" ");
+
+  let yourTerm = searchBar["value"].toLowerCase().replaceAll(/[^a-z0-9 "]/g, "");
+  let phrases = yourTerm.match(/("[^"]*")/g);
+
+  if (phrases) {
+    phrases.forEach(item => {
+      yourTerm = yourTerm.replace(item, item.replaceAll(/[" ]/g, ""));
+    });
+  }
+
+  yourTerm = yourTerm.replaceAll('"', "").split(" ");
+
   const userID = searchUser["value"] != "" ? Number(searchUser["value"]) : null;
 
   for (let i = 0; i < numGames; i++) {
-    if (yourTerm.every(item => (gameData[i][9]).includes(item)) && (!userID || gameData[i][1] == userID)) {
+    if (yourTerm.every(item => (gameData[i][9]).includes(item)) && (!userID || gameData[i][1] == userID) && (!includeBuilds || gameData[i][6] && gameData[i][6] > 0)) {
       searchResults.push(i)
     }
   }
 
   const numResults = searchResults.length;
   document.getElementById("resultCount").textContent = `${numResults.toLocaleString()} ${numResults == 1 ? "result" : "results"}`;
-  loadResults(0);
+  loadResults(0, true);
 
   document.getElementById("pagination").style.display = "";
   document.getElementById("resultCount").style.display = "";
   document.getElementById("numResults").style.display = "";
+  document.getElementById("searchMode").style.display = "";
+  document.getElementById("buildSelect").style.display = "";
   
   if (!canSeeDeleted) {
     document.getElementById("notice").style.display = "";
@@ -187,6 +226,16 @@ async function init() {
     resultsPerPage = Number(perPageSelector["value"]);
 
     loadResults(Math.floor(oldCount * oldPage / resultsPerPage) * resultsPerPage);
+  });
+
+  sortSelector.addEventListener("change", (event) => {
+    searchMode = Number(sortSelector["value"]);
+    loadResults(0, true);
+  });
+
+  buildCheckbox.addEventListener("change", (event) => {
+    includeBuilds = event.target.checked;
+    search();
   });
 }
 
